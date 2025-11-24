@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérification Email - SupplyWise</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #22C55E 0%, #16a34a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .loading-icon {
+            width: 100px;
+            height: 100px;
+            border: 8px solid #F3F4F6;
+            border-top-color: #22C55E;
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: #22C55E;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 50px;
+        }
+
+        .error-icon {
+            width: 100px;
+            height: 100px;
+            background: #EF4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 50px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #1F2937;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .message {
+            font-size: 18px;
+            color: #4B5563;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .instructions {
+            background: #F3F4F6;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .instructions h2 {
+            font-size: 18px;
+            color: #1F2937;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .instructions p {
+            font-size: 16px;
+            color: #6B7280;
+            line-height: 1.6;
+        }
+
+        .step {
+            display: flex;
+            align-items: start;
+            text-align: left;
+            margin-bottom: 12px;
+        }
+
+        .step-number {
+            background: #22C55E;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+
+        .step-text {
+            flex: 1;
+            padding-top: 4px;
+        }
+
+        .note {
+            font-size: 14px;
+            color: #9CA3AF;
+            line-height: 1.5;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .footer-title {
+            font-size: 18px;
+            color: #1F2937;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .footer-text {
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .retry-button {
+            background: #22C55E;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+
+        .retry-button:hover {
+            background: #16A34A;
+            transform: translateY(-2px);
+        }
+
+        .retry-button:active {
+            transform: translateY(0);
+        }
+
+        .error-details {
+            background: #FEF2F2;
+            border-left: 4px solid #EF4444;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .error-details-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #991B1B;
+            margin-bottom: 8px;
+        }
+
+        .error-details-text {
+            font-size: 13px;
+            color: #7F1D1D;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- État de chargement -->
+    <div id="loading-state" class="container">
+        <div class="loading-icon"></div>
+        <h1>Vérification en cours...</h1>
+        <p class="message">
+            Nous vérifions votre adresse email.<br>
+            Veuillez patienter quelques instants.
+        </p>
+    </div>
+
+    <!-- État de succès -->
+    <div id="success-state" class="container hidden">
+        <div class="success-icon">✓</div>
+        <h1>Email vérifié !</h1>
+        <p class="message">
+            Votre compte a été vérifié avec succès.<br>
+            Merci de votre inscription.
+        </p>
+        <div class="instructions">
+            <h2>Prochaines étapes :</h2>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-text">
+                    Fermez cette fenêtre ou cet onglet
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-text">
+                    Ouvrez l'application SupplyWise sur votre téléphone
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-text">
+                    Connectez-vous avec votre email et mot de passe
+                </div>
+            </div>
+        </div>
+        <p class="note">
+            Vous pouvez maintenant accéder à toutes les fonctionnalités de SupplyWise et profiter de vos recommandations personnalisées.
+        </p>
+        <div class="footer">
+            <div class="footer-title">SupplyWise</div>
+            <div class="footer-text">
+                Supplémentation sportive basée sur la science
+            </div>
+        </div>
+    </div>
+
+    <!-- État d'erreur -->
+    <div id="error-state" class="container hidden">
+        <div class="error-icon">✕</div>
+        <h1>Erreur de vérification</h1>
+        <p id="error-message" class="message">
+            Une erreur est survenue lors de la vérification de votre email.
+        </p>
+        <div id="error-details-container" class="hidden">
+            <div class="error-details">
+                <div class="error-details-title">Détails de l'erreur :</div>
+                <div id="error-details" class="error-details-text"></div>
+            </div>
+        </div>
+        <button id="retry-button" class="retry-button">Réessayer</button>
+        <div class="footer">
+            <div class="footer-title">SupplyWise</div>
+            <div class="footer-text">
+                Supplémentation sportive basée sur la science
+            </div>
+        </div>
+    </div>
+
+    <!-- Chargement du SDK Supabase depuis le CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://rkcgyfnimzkngoxmtuuw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrY2d5Zm5pbXprbmdveG10dXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0ODEzNzcsImV4cCI6MjA3MjA1NzM3N30.9V9brrSVdVJH3Kbi-u4hWrCQQv5YLNZ0tADukI31_w0';
+
+        // Initialiser le client Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Fonction pour extraire les paramètres de l'URL
+        function getUrlParams() {
+            const params = {};
+
+            // Extraire les paramètres de la query string
+            const searchParams = new URLSearchParams(window.location.search);
+            for (const [key, value] of searchParams.entries()) {
+                params[key] = value;
+            }
+
+            // Extraire les paramètres du hash (fragment)
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const hashParams = new URLSearchParams(hash);
+                for (const [key, value] of hashParams.entries()) {
+                    params[key] = value;
+                }
+            }
+
+            console.log('[Verify Email] Paramètres extraits:', params);
+            return params;
+        }
+
+        // Fonction pour afficher l'état de succès
+        function showSuccess() {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('error-state').classList.add('hidden');
+            document.getElementById('success-state').classList.remove('hidden');
+        }
+
+        // Fonction pour afficher l'état d'erreur
+        function showError(message, details = null) {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('success-state').classList.add('hidden');
+            document.getElementById('error-state').classList.remove('hidden');
+            document.getElementById('error-message').textContent = message;
+
+            if (details) {
+                document.getElementById('error-details').textContent = details;
+                document.getElementById('error-details-container').classList.remove('hidden');
+            }
+        }
+
+        // Fonction principale de vérification
+        async function verifyEmail() {
+            console.log('[Verify Email] Début de la vérification...');
+
+            try {
+                // Récupérer les paramètres de l'URL
+                const params = getUrlParams();
+
+                // Vérifier que nous avons un token_hash
+                if (!params.token_hash && !params.token) {
+                    console.error('[Verify Email] Aucun token trouvé');
+                    showError(
+                        'Lien de vérification invalide',
+                        'Le lien ne contient pas de token de vérification. Veuillez demander un nouveau lien de vérification.'
+                    );
+                    return;
+                }
+
+                // Déterminer le type de vérification
+                const tokenHash = params.token_hash || params.token;
+                const type = params.type || 'signup';
+
+                console.log('[Verify Email] Vérification avec token_hash:', tokenHash.substring(0, 10) + '...');
+                console.log('[Verify Email] Type:', type);
+
+                // Appeler l'API Supabase pour vérifier le token
+                const { data, error } = await supabase.auth.verifyOtp({
+                    token_hash: tokenHash,
+                    type: type
+                });
+
+                if (error) {
+                    console.error('[Verify Email] Erreur Supabase:', error);
+
+                    // Gestion des erreurs spécifiques
+                    if (error.message?.includes('expired') || error.message?.includes('invalid')) {
+                        showError(
+                            'Lien de vérification expiré ou invalide',
+                            'Ce lien a expiré (validité 24h) ou a déjà été utilisé. Veuillez vous connecter et demander un nouveau lien de vérification si nécessaire.'
+                        );
+                    } else if (error.message?.includes('already') || error.message?.includes('used')) {
+                        showError(
+                            'Lien déjà utilisé',
+                            'Ce lien a déjà été utilisé pour vérifier votre email. Vous pouvez maintenant vous connecter avec vos identifiants.'
+                        );
+                    } else {
+                        showError(
+                            'Erreur de vérification',
+                            `Une erreur est survenue: ${error.message}. Veuillez réessayer ou contacter le support.`
+                        );
+                    }
+                    return;
+                }
+
+                // Vérification réussie
+                if (data?.session || data?.user) {
+                    console.log('[Verify Email] Vérification réussie!');
+                    console.log('[Verify Email] Email confirmé:', data.user?.email);
+                    showSuccess();
+                } else {
+                    console.error('[Verify Email] Réponse inattendue:', data);
+                    showError(
+                        'Vérification incomplète',
+                        'La vérification n\'a pas retourné les données attendues. Veuillez réessayer.'
+                    );
+                }
+
+            } catch (err) {
+                console.error('[Verify Email] Erreur inattendue:', err);
+                showError(
+                    'Erreur technique',
+                    `Une erreur inattendue est survenue: ${err.message}. Veuillez vérifier votre connexion internet et réessayer.`
+                );
+            }
+        }
+
+        // Bouton de réessai
+        document.getElementById('retry-button').addEventListener('click', () => {
+            document.getElementById('error-state').classList.add('hidden');
+            document.getElementById('loading-state').classList.remove('hidden');
+            setTimeout(verifyEmail, 500);
+        });
+
+        // Lancer la vérification au chargement de la page
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('[Verify Email] Page chargée, lancement de la vérification...');
+            // Attendre un petit délai pour que l'UI s'affiche
+            setTimeout(verifyEmail, 1000);
+        });
+    </script>
+</body>
+</html>
