@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirection SupplyWise</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f9fafb;
+            color: #111827;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #22C55E;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+        p { color: #6b7280; font-size: 0.875rem; text-align: center; max-width: 300px; }
+        .btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #22C55E;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+    <h1>Ouverture de l'application...</h1>
+    <p>Veuillez patienter pendant que nous vous redirigeons vers SupplyWise.</p>
+    <a id="fallback-btn" class="btn" href="#">Ouvrir l'application manuellement</a>
+
+    <script>
+        // Configuration
+        const APP_SCHEME = 'supplywise://';
+        const PATH = 'auth-callback';
+
+        function buildDeepLink() {
+            const hash = window.location.hash.substring(1);
+            const search = window.location.search;
+            
+            // Combine hash and search params
+            const params = new URLSearchParams(search);
+            new URLSearchParams(hash).forEach((value, key) => {
+                params.append(key, value);
+            });
+
+            return `${APP_SCHEME}${PATH}?${params.toString()}`;
+        }
+
+        const deepLink = buildDeepLink();
+        const fallbackBtn = document.getElementById('fallback-btn');
+
+        // Set button href just in case
+        fallbackBtn.href = deepLink;
+
+        // Attempt redirect
+        window.location.href = deepLink;
+
+        // Show button after a timeout if redirect fails/is ignored
+        setTimeout(() => {
+            fallbackBtn.style.display = 'inline-block';
+            document.querySelector('.loader').style.display = 'none';
+            document.querySelector('h1').textContent = 'Redirection non détectée ?';
+            document.querySelector('p').textContent = 'Si l\'application ne s\'ouvre pas automatiquement, cliquez sur le bouton ci-dessous.';
+        }, 2000);
+    </script>
+</body>
+</html>
